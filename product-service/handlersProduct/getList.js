@@ -12,8 +12,8 @@ module.exports.getProductsList = async (event) => {
     }
     return {
       statusCode: 404,
-      error: new Error("Product not found")
-    }
+      body: JSON.stringify({"Error:": "Product not found"})
+      };
   }catch(err){
     throw new Error(err.message)
   }

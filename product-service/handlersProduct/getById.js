@@ -2,23 +2,23 @@
 
 const { mock } = require("./mock.js");
 
-module.exports.getProductsById = async (event) => {
+module.exports.getProductsById = async (event, callback, error,) => {
   try{
     if(event.pathParameters) {
       
-      mock.find(product => {
-        if(Number(event.pathParameters.productId) === product.productId) {
-          console.log('yes')
-          
+      const productId = Number(event.pathParameters.productId);
+      const result = mock.find(product => product.productId == productId);
+  
+      if (!result) {
+        return {
+            statusCode: 404,
+            body: JSON.stringify({"Error:": "Product not found"})
+            };
+      } else {
           return {
-          statusCode: 200,
-          body: JSON.stringify(mock)
-          };
-        }
-      })
-      return {
-        statusCode: 404,
-        error: new Error("Product not found")
+            statusCode: 200,
+            body: JSON.stringify(result)
+            };
       }
     }
   }catch(err){
@@ -26,8 +26,3 @@ module.exports.getProductsById = async (event) => {
     throw new Error(err)
   }
 };
-
-
-
-
-
