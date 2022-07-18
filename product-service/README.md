@@ -7,3 +7,7 @@
 4. Error handling implemented
 
 5. Web Pack
+
+6. Lambda functions are at separated files in the folder handlersProduct
+
+7. Testing by Jest: npm run test

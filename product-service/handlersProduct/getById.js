@@ -2,7 +2,7 @@
 
 const { mock } = require("./mock.js");
 
-module.exports.getProductsById = async (event, callback, error,) => {
+module.exports.getProductsById = async (event) => {
   try{
     if(event.pathParameters) {
       
