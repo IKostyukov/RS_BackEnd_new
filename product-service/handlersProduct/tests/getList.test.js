@@ -1,6 +1,5 @@
-const { getProductsList } = require('../handlersProduct/getList.js');
-const { mock } = require("../handlersProduct/mock.js");
-
+import  getProductsList  from '../getList';
+import  mock  from "../mock";
 
 test('retrieve product list', async() => {
   const expected = await getProductsList()

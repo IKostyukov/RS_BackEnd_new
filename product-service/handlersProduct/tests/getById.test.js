@@ -1,4 +1,4 @@
-const { getProductsList } = require('../handlersProduct/getList.js');
+import  getProductsList  from '../getList';
 // const { mock } = 
 
 

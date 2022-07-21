@@ -1,14 +1,14 @@
 console: true
-service: product-service
+service: product-service-task4
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
-plugins:
-  - serverless-webpack
+# plugins:
+#   - serverless-webpack
 
-custom:
-  webpack:
-    webpackConfig: ./webpack.config.js
-    includeModules: true
+# custom:
+#   webpack:
+#     webpackConfig: ./webpack.config.js
+#     includeModules: true
 
 org: igorok
 
@@ -53,6 +53,14 @@ provider:
 #    - '!exclude-me-dir/**'
 #    - include-me.js
 #    - include-me-dir/**
+
+envinronment:
+  PG_HOST: lesson4-instance.cmz28i8u9m5j.eu-west-1.rds.amazonaws.com
+  PG_PORT: 5432
+  PG_DATABASE: lesson4
+  PG_USERNAME: postgres
+  PG_PASSWORD: 12341234
+
 functions:
   hello:
     handler: handler.hello

@@ -1,5 +1,5 @@
 
-module.exports.mock = [
+export const mock = [
     {
       "productId": 1,
       "price": 135
@@ -21,4 +21,5 @@ module.exports.mock = [
       "price": 111
     }
 ]  
+
 

@@ -4,7 +4,11 @@
   "description": "Serverless aws-nodejs",
   "main": "serverless.yml",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "babel handlersProduct -d dist",
+    "start": "npm run build && nodemon dist/index.js",
+    "serve": "node dist/index.js",
+    "deploy": "serverless deploy"
   },
   "engines": {
     "node": ">=14.15.0"
@@ -13,6 +17,7 @@
     "@middy/http-json-body-parser": "^2.5.3"
   },
   "devDependencies": {
+    "@babel/cli": "^7.18.9",
     "@babel/core": "^7.10.5",
     "@babel/plugin-transform-runtime": "^7.10.5",
     "@babel/preset-env": "^7.10.4",
@@ -24,7 +29,7 @@
     "serverless": "^3.0.0",
     "serverless-esbuild": "^1.23.3",
     "serverless-webpack": "^5.7.1",
-    "webpack": "^4.44.1",
+    "webpack": "^5.73.0",
     "webpack-node-externals": "^2.5.0"
   }
 }
