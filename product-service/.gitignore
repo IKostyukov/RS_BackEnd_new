@@ -10,3 +10,4 @@ dist
 
 # Fixtures 
 mock_DB
+.env

@@ -1,60 +1,69 @@
 'use strict';
 
 const { mock } = require("./mock.js");
+const  { Client } = require("pg");
 
-module.exports.getProductsById = async (event) => {
-  try{
-    if(event.pathParameters) {
-      
-      const productId = Number(event.pathParameters.productId);
-      const result = mock.find(product => product.productId == productId);
-  
-      if (!result) {
-        return {
-            statusCode: 404,
-            body: JSON.stringify({"Error:": "Product not found"})
-            };
-      } else {
-          return {
-            statusCode: 200,
-            body: JSON.stringify(result)
-            };
-      }
-    }
-  }catch(err){
-    console.log('----->>>>>', err.message); 
-    throw new Error(err)
-  }
+const { PG_HOST, PG_PORT, PG_DATABASE, PG_USERNAME, PG_PASSWORD } = process.env;
+const dbOptions = {
+  host: PG_HOST,
+  port: PG_PORT,
+  database: PG_DATABASE,
+  user: PG_USERNAME,
+  password: PG_PASSWORD,
+    ssl: {
+    rejectUnauthorized: false
+  },
+  connectionTimeoutMillis: 5000
 };
 
-// ########################################################
-// 'use strict';
+module.exports.getProductById = async (event) => {
+  console.log({
+    path: event.path,
+    httpMethod: event.httpMethod,
+    query: event.queryStringParameters
+})
+  const db = new Client(dbOptions);
+  await db.connect();
 
-// import  mock  from "./mock.js";
+  const productId = Number(event.pathParameters.productId);
+  
+  const defaultHeaders = {
+    'Access-Control-Allow-Methods': '*',
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Origin': '*'
+};
 
-// async function getProductsById(event) {
-//   try {
-//     if (event.pathParameters) {
+  try{
+    const oneProduct = await db.query(`SELECT 
+    id, s.stock as count, price, title, description
+    FROM products p 
+    LEFT JOIN stocks s ON s.product_id = p.id 
+    WHERE p.id = ${productId};`)
 
-//       const productId = Number(event.pathParameters.productId);
-//       const result = mock.find(product => product.productId == productId);
+    if (oneProduct.rowCount === 0 ) {
+      return {
+        statusCode: 404,
+         headers: {
+            ...defaultHeaders
+        },
+        body: JSON.stringify({"Error:": "Product not found"})
+        };
+    } else {
+      
+       const result = {
+        statusCode: 200,
+         headers: {
+            ...defaultHeaders
+        },
+        body: JSON.stringify(oneProduct.rows)   
+        };
 
-//       if (!result) {
-//         return {
-//           statusCode: 404,
-//           body: JSON.stringify({ "Error:": "Product not found" })
-//         };
-//       } else {
-//         return {
-//           statusCode: 200,
-//           body: JSON.stringify(result)
-//         };
-//       }
-//     }
-//   } catch (err) {
-//     console.log('----->>>>>', err.message);
-//     throw new Error(err);
-//   }
-// }
-
-// export default getProductsById
+      console.log('Fetched to FrontEnd', result)
+      return result
+    }
+  }catch(err){
+    throw new Error( { message: err.message || '500 ' })
+  }finally{
+    db.end()
+  }
+};

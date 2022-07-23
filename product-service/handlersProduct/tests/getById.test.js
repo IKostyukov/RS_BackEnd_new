@@ -1,6 +1,4 @@
-import  getProductsList  from '../getList';
-// const { mock } = 
-
+const getProductsList = require('../getList');
 
 test('retrieve existing productId 4', async() => {
   let event = {};
