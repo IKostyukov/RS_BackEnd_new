@@ -26,32 +26,36 @@ provider:
   region: eu-west-1
   iamRoleStatments:
     - Effect: "Alow"
-      Actions: "s3:ListBucket"
+      Actions: "s3:*"
       Recource:
         - "arn:aws:s3:::import-service-epam"
+
     - Effect: "Alow"
       Actions:
         - "s3:*"
-      Recource:
-        - "arn:aws:s3:::import-service-epam/*"
+      Recource: "arn:aws:s3:::import-service-epam/*"
 
-# you can add statements to the Lambda function's IAM Role here
-#  iam:
-#    role:
-#      statements:
-#        - Effect: "Allow"
-#          Action:
-#            - "s3:ListBucket"
-#          Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#        - Effect: "Allow"
-#          Action:
-#            - "s3:PutObject"
-#          Resource:
-#            Fn::Join:
-#              - ""
-#              - - "arn:aws:s3:::"
-#                - "Ref" : "ServerlessDeploymentBucket"
-#                - "/*"
+  # you can add statements to the Lambda function's IAM Role here
+  # iam:
+  #   role:
+  #     statements:
+  #       - Effect: "Allow"
+  #         Action:
+  #           - "s3:ListBucket"
+  #         Resource:
+  #           {
+  #             "Fn::Join":
+  #               ["", ["arn:aws:s3:::", { "Ref": "import-service-epam" }]],
+  #           }
+  #       - Effect: "Allow"
+  #         Action:
+  #           - "s3:PutObject"
+  #         Resource:
+  #           Fn::Join:
+  #             - ""
+  #             - - "arn:aws:s3:::"
+  #               - "Ref": "import-service-epam"
+  #               - "/*"
 
 # you can define service wide environment variables here
 #  environment:
@@ -67,7 +71,7 @@ provider:
 
 functions:
   importProductsFile:
-    handler: handlers/importProductsFile.importProductsFile
+    handler: handlersProduct/importProductsFile.importProductsFile
     events:
       - http:
           path: import
@@ -83,7 +87,7 @@ functions:
                 bar: false
 
   importFileParser:
-    handler: handlers/importFileParser.importFileParser
+    handler: handlersProduct/importFileParser.importFileParser
     events:
       - s3:
         bucket: arn:aws:s3:::import-service-epam
