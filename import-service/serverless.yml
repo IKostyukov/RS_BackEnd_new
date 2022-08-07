@@ -1,15 +1,15 @@
 console: true
-service: product-service
+service: import-service
 # app and org for use with dashboard.serverless.com
 # app: product-service-task4-1
 # plugins:
 #   - serverless-webpack
 
-custom:
-  webpack:
-    # webpackConfig: 'webpack.config.js'
-    # includeModules: true
-    dotenvVars: ${file(configs.js)}
+# custom:
+#   webpack:
+# webpackConfig: 'webpack.config.js'
+# includeModules: true
+# dotenvVars: ${file(configs.js)}
 
 # org: igorok
 
@@ -20,57 +20,71 @@ frameworkVersion: "3"
 provider:
   name: aws
   runtime: nodejs14.x
+  environment:
+    SQS_URL:
+      Ref: SQSQueue
 
   # you can overwrite defaults here
   stage: dev
   region: eu-west-1
-  environment:
-    SNS_URL:
-      Ref: SNSTopic
-
-    PG_HOST: ${self:custom.dotenvVars.PG_HOST, env:PG_HOST, ''}
-    PG_USERNAME: ${self:custom.dotenvVars.PG_USERNAME, env:PG_USERNAME, ''}
-    PG_DATABASE: ${self:custom.dotenvVars.PG_DATABASE, env:PG_DATABASE, ''}
-    PG_PASSWORD: ${self:custom.dotenvVars.PG_PASSWORD, env:PG_PASSWORD, ''}
-    PG_PORT: ${self:custom.dotenvVars.PG_PORT, env:PG_PORT, ''}
-
   iamRoleStatments:
     - Effect: "Alow"
-      Actions: "sns:*"
+      Actions: "s3:*"
       Recource:
-        Ref:
+        - "arn:aws:s3:::import-service-epam"
+
+    - Effect: "Alow"
+      Actions:
+        - "s3:*"
+      Recource: "arn:aws:s3:::import-service-epam/*"
+
+    - Effect: "Alow"
+      Actions:
+        - "sqs:*"
+      Recource:
+        - Fn::GetAtt: [SQSQueue, Arn]
 
 resources:
   Resources:
-    SNSTopic:
-      Type: AWS::SNS::Topic
+    SQSQueue:
+      Type: AWS::SQS::Queue
       Properties:
-        TopicName: product-service-topic
-    SNSSubscription:
-      Type: AWS::SNS::Subscription
-      Properties:
-        Endpoint: igorkostukov@gmail.com
-        Protocol: email
-        TopicArn:
-          Ref: SNSTopic
+        QueueName: import-service-queue
 
-# you can add statements to the Lambda function's IAM Role here
-#  iam:
-#    role:
-#      statements:
-#        - Effect: "Allow"
-#          Action:
-#            - "s3:ListBucket"
-#          Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#        - Effect: "Allow"
-#          Action:
-#            - "s3:PutObject"
-#          Resource:
-#            Fn::Join:
-#              - ""
-#              - - "arn:aws:s3:::"
-#                - "Ref" : "ServerlessDeploymentBucket"
-#                - "/*"
+    # SNSTopic:
+    #   Type: AWS::SNS::Topic
+    #   Properties:
+    #     TopicName: product-service-topic
+
+    # SNSSubscription:
+    #   Type: AWS::SNS::Subscription
+    #   Properties:
+    #     Endpoint: igorkostukov@gmail.com
+    #     Protocol: email
+    #     TopicArn:
+    #       Ref: SNSTopic
+
+    # you can add statements to the Lambda function's IAM Role here
+    # iam:
+    #   role:
+    #     statements:
+    #       - Effect: "Allow"
+    #         Action:
+    #           - "s3:ListBucket"
+    #         Resource:
+    #           {
+    #             "Fn::Join":
+    #               ["", ["arn:aws:s3:::", { "Ref": "import-service-epam" }]],
+    #           }
+    #       - Effect: "Allow"
+    #         Action:
+    #           - "s3:PutObject"
+    #         Resource:
+    #           Fn::Join:
+    #             - ""
+    #             - - "arn:aws:s3:::"
+    #               - "Ref": "import-service-epam"
+    #               - "/*"
 
 # you can define service wide environment variables here
 #  environment:
@@ -85,31 +99,30 @@ resources:
 #    - include-me-dir/**
 
 functions:
-  catalogBatchProcess:
-    handler: handlersProduct/catalogBatch.catalogBatchProcess
-    events:
-      - sqs:
-        batchsize: 5
-        arn:
-          Fn::GetAtt:
-            - SQSQueue
-            - Arn
-
-  getProductsList:
-    handler: handlersProduct/getList.getProductsList
+  importProductsFile:
+    handler: handlersProduct/importProductsFile.importProductsFile
     events:
       - http:
-          path: products
+          path: import
           method: get
           cors: true
-
-  getProductsById:
-    handler: handlersProduct/getById.getProductsById
+          request:
+            parameters:
+              querystrings:
+                name: true
+              headers:
+                foo: false
+              paths:
+                bar: false
+  importFileParser:
+    handler: handlersProduct/importFileParser.importFileParser
     events:
-      - http:
-          path: products/{productId}
-          method: get
-          cors: true
+      - s3:
+        bucket: import-service-epam
+        event: s3:ObjectCreated:*
+        rules:
+          - prefix: uploaded/
+        existing: true
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
